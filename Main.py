@@ -1,7 +1,15 @@
 import requests
 import geopy.distance
 import LocationNode
+import os
+import dotenv
 
+dotenv.load_dotenv('.env')
+
+#Perplexity Key
+KEY = os.getenv('API_KEY')
+
+#Overpass API accessing Open Street Map Data
 OVERPASS_URL = "http://overpass-api.de/api/interpreter"
 
 def get_bounding_box(latitude, longitude, radius_miles):
@@ -47,25 +55,31 @@ def query_osm_landmarks(lat, lon, radius_miles=1):
     
     data = response.json()
     
-    # Extract the landmarks from the response
+    # Extract all the landmarks from the response
     landmarks = []
     for element in data['elements']:
-        name = element['tags'].get('name', 'Unnamed landmark')
-        landmark_type = ', '.join([f"{k}={v}" for k, v in element['tags'].items()])
-        lat = element['lat']
-        lon = element['lon']
-        landmarks.append({
-            'name': name,
-            'type': landmark_type,
-            'latitude': lat,
-            'longitude': lon
+        name = element['tags'].get('name')
+        if name != None:
+            landmark_type = ', '.join([f"{k}={v}" for k, v in element['tags'].items()])
+            lat = element['lat']
+            lon = element['lon']
+            landmarks.append({
+                'name': name,
+                'type': landmark_type,
+                'latitude': lat,
+                'longitude': lon
         })
     
     return landmarks
 
 
-latitude = 35.91465474826616
-longitude = -79.04839488729391
+#Get noteworth landmarks from GPT and create landmark objects
+
+
+latitude = 40.7128
+longitude = -74.0060
+
+#In miles
 radius = 1 
 
 landmarks = query_osm_landmarks(latitude, longitude, radius)
