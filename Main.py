@@ -6,8 +6,9 @@ import dotenv
 
 dotenv.load_dotenv('.env')
 
-#Perplexity Key
+#Perplexity
 KEY = os.getenv('API_KEY')
+PERP_URL = "https://api.perplexity.ai/chat/completions"
 
 #Overpass API accessing Open Street Map Data
 OVERPASS_URL = "http://overpass-api.de/api/interpreter"
@@ -73,14 +74,51 @@ def query_osm_landmarks(lat, lon, radius_miles=1):
     return landmarks
 
 
-#Get noteworth landmarks from GPT and create landmark objects
+#Get noteworthy landmarks from GPT and create landmark objects
+def query_gpt(message):
+
+    payload = {
+        "model": "llama-3.1-sonar-small-128k-online",
+        "messages": [
+            {
+                "role": "system",
+                "content": "Be precise and concise."
+            },
+            {
+                "role": "user",
+                "content": message
+            }
+        ],
+        "max_tokens": "Optional",
+        "temperature": 0.2,
+        "top_p": 0.9,
+        "return_citations": True,
+        "search_domain_filter": ["perplexity.ai"],
+        "return_images": False,
+        "return_related_questions": False,
+        "search_recency_filter": "month",
+        "top_k": 0,
+        "stream": False,
+        "presence_penalty": 0,
+        "frequency_penalty": 1
+    }
+    headers = {
+        "Authorization": "Bearer KEY",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.request("POST", PERP_URL, json=payload, headers=headers)
+
+    print(response.text)
 
 
-latitude = 40.7128
-longitude = -74.0060
+
+#Testing
+latitude = 45.9237
+longitude = 6.8694
 
 #In miles
-radius = 1 
+radius = 5 
 
 landmarks = query_osm_landmarks(latitude, longitude, radius)
 for landmark in landmarks:
