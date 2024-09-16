@@ -29,6 +29,14 @@ def query_osm_landmarks(lat, lon, radius_miles=1):
     [out:json];
     (
       node["tourism"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["artwork"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["atraction"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["garden"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["historic"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["landmark"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["memorial"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["natural"](around:{radius_miles * 1609.34},{lat},{lon})["natural"!~"tree"];
+
 
     );
     out body;
@@ -63,4 +71,3 @@ radius = 1
 landmarks = query_osm_landmarks(latitude, longitude, radius)
 for landmark in landmarks:
     print(f"Landmark: {landmark['name']}, Type: {landmark['type']}, Location: ({landmark['latitude']}, {landmark['longitude']})")
-    print("ENDMOOSe")

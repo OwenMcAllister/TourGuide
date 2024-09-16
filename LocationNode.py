@@ -3,11 +3,13 @@ import math
 class Location:
 
     #Initialize new landmark with lat, long, and result of osm query
-    def __init__(self, latitude, longitude, name, category, info):
+    def __init__(self, latitude, longitude, name, tag, info):
         self.latitude = latitude
         self.longitude = longitude
         self.name = name
-        self.category = category
+        self.tag = tag
+
+        #What we get from ChatGPT
         self.info = info
 
 
@@ -20,11 +22,11 @@ class Location:
     
 
     def getName(self):
-        return self.latitude
+        return self.name
     
 
-    def getCategory(self):
-        return self.category
+    def getTag(self):
+        return self.tag
     
 
     def getInfo(self):
