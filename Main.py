@@ -78,21 +78,21 @@ def query_osm_landmarks(lat, lon, radius_miles=1):
 def query_gpt(message):
 
     payload = {
-        "model": "llama-3.1-sonar-small-128k-online",
+        "model": "llama-3.1-sonar-large-128k-chat",
         "messages": [
             {
                 "role": "system",
-                "content": "Be precise and concise."
+                "content": "With the pasted text, return a list of the top 10 most interesting locations. Format the data to look like the following: '[LocationName1, CategoryTag1, Latitude1, Longitude1], [LocationName2, CategoryTag2, Latitude2, Longitude2],...' YOU CAN NOT include any additional commentary or text, before OR after the data output."
             },
             {
                 "role": "user",
                 "content": message
             }
         ],
-        "max_tokens": "Optional",
+        "max_tokens": 1000,
         "temperature": 0.2,
         "top_p": 0.9,
-        "return_citations": True,
+        "return_citations": False,
         "search_domain_filter": ["perplexity.ai"],
         "return_images": False,
         "return_related_questions": False,
@@ -103,7 +103,7 @@ def query_gpt(message):
         "frequency_penalty": 1
     }
     headers = {
-        "Authorization": "Bearer KEY",
+        "Authorization": f"Bearer {KEY}",
         "Content-Type": "application/json"
     }
 
@@ -121,5 +121,12 @@ longitude = 6.8694
 radius = 5 
 
 landmarks = query_osm_landmarks(latitude, longitude, radius)
+
+query_string =  ""
+
 for landmark in landmarks:
-    print(f"Landmark: {landmark['name']}, Type: {landmark['type']}, Location: ({landmark['latitude']}, {landmark['longitude']})")
+    query_string += f"Landmark: {landmark['name']}, Type: {landmark['type']}, Location: ({landmark['latitude']}, {landmark['longitude']})"
+
+query_gpt(query_string)
+
+#print(query_string)
