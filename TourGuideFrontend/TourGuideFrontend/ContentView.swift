@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreLocation
+import MapKit
 
 struct ContentView: View {
     @StateObject private var locationManager: LocationManager
@@ -11,9 +12,17 @@ struct ContentView: View {
         _locationManager = StateObject(wrappedValue: locationManager)
     }
     
+    
     var body: some View {
         VStack(spacing: 20) {
             if let location = locationManager.userLocation {
+                var region: MKCoordinateRegion {
+                    MKCoordinateRegion(
+                        center: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude),
+                        span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
+                    )
+                }
+                
                 Text("Tour Guide:")
                     .font(.largeTitle)
                     .foregroundColor(.black)
@@ -28,6 +37,8 @@ struct ContentView: View {
                 Text("Location: \(location.latitude), \(location.longitude)")
                     .font(.headline)
                     .padding()
+                
+                Map(initialPosition: .region(region))
                 
                 Button(action: {
                     sendLocationToBackend(location: location)
