@@ -3,7 +3,7 @@ import CoreLocation
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var locationManager = CLLocationManager()
-
+    
     @Published var userLocation: CLLocationCoordinate2D?
     @Published var permissionDenied = false
     
