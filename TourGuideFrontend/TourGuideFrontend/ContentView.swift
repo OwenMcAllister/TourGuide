@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var aiResponse: [String] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var isMapExpanded = false // State to control map enlargement
     
     init(locationManager: LocationManager = LocationManager()) {
         _locationManager = StateObject(wrappedValue: locationManager)
@@ -16,7 +17,7 @@ struct ContentView: View {
         ZStack {
             // Full-screen background
             Color(.systemGray6)
-                .ignoresSafeArea() // Ensures background color fills the entire screen
+                .ignoresSafeArea()
             
             // Foreground content
             VStack(spacing: 20) {
@@ -24,7 +25,14 @@ struct ContentView: View {
                     TourGuideHeader()
                     LocationDetailsView(location: location)
                     
+                    // Tap on Map to Expand
                     MapView(location: location)
+                        .onTapGesture {
+                            isMapExpanded = true
+                        }
+                        .sheet(isPresented: $isMapExpanded) {
+                            EnlargedMapView(location: location)
+                        }
                     
                     ActionButton(isLoading: isLoading) {
                         sendLocationToBackend(location: location)
@@ -39,7 +47,6 @@ struct ContentView: View {
         }
     }
     
-    // API Call Function
     func sendLocationToBackend(location: CLLocationCoordinate2D) {
         isLoading = true
         errorMessage = nil
