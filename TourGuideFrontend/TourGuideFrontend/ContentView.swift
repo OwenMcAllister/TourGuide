@@ -22,7 +22,6 @@ struct ContentView: View {
                         span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
                     )
                 }
-                
                 Text("Tour Guide:")
                     .font(.largeTitle)
                     .foregroundColor(.black)
@@ -76,6 +75,7 @@ struct ContentView: View {
             }
         }
         .padding()
+        Spacer()
     }
     
     func sendLocationToBackend(location: CLLocationCoordinate2D) {
