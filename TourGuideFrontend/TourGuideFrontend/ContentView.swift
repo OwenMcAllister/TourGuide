@@ -12,72 +12,34 @@ struct ContentView: View {
         _locationManager = StateObject(wrappedValue: locationManager)
     }
     
-    
     var body: some View {
-        VStack(spacing: 20) {
-            if let location = locationManager.userLocation {
-                var region: MKCoordinateRegion {
-                    MKCoordinateRegion(
-                        center: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude),
-                        span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
-                    )
-                }
-                Text("Tour Guide:")
-                    .font(.largeTitle)
-                    .foregroundColor(.black)
-                    .fontWeight(.bold)
-                
-                Text("The Ultimate Tour Guide")
-                    .font(.subheadline)
-                    .padding(.bottom)
-                    .foregroundColor(.black)
-                    .fontWeight(.bold)
-                
-                Text("Location: \(location.latitude), \(location.longitude)")
-                    .font(.headline)
-                    .padding()
-                
-                Map(initialPosition: .region(region))
-                
-                Button(action: {
-                    sendLocationToBackend(location: location)
-                }) {
-                    Text(isLoading ? "Loading..." : "Send Location to AI")
-                        .padding()
-                        .background(isLoading ? Color.gray : Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .disabled(isLoading)
-                
-                if !aiResponse.isEmpty {
-                    List(aiResponse, id: \.self) { item in
-                        Text(item)
+        ZStack {
+            // Full-screen background
+            Color(.systemGray6)
+                .ignoresSafeArea() // Ensures background color fills the entire screen
+            
+            // Foreground content
+            VStack(spacing: 20) {
+                if let location = locationManager.userLocation {
+                    TourGuideHeader()
+                    LocationDetailsView(location: location)
+                    
+                    MapView(location: location)
+                    
+                    ActionButton(isLoading: isLoading) {
+                        sendLocationToBackend(location: location)
                     }
-                    .listStyle(PlainListStyle())
+                    
+                    ResponseListView(aiResponse: aiResponse, errorMessage: errorMessage)
+                } else {
+                    LocationPermissionView(permissionDenied: locationManager.permissionDenied)
                 }
-                
-                if let error = errorMessage {
-                    Text("Error: \(error)")
-                        .foregroundColor(.red)
-                        .font(.subheadline)
-                }
-                
-            } else if locationManager.permissionDenied {
-                Text("Location Permission Denied.")
-                    .foregroundColor(.red)
-                    .font(.headline)
-                
-            } else {
-                Text("Requesting Location...")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
             }
+            .padding()
         }
-        .padding()
-        Spacer()
     }
     
+    // API Call Function
     func sendLocationToBackend(location: CLLocationCoordinate2D) {
         isLoading = true
         errorMessage = nil
@@ -121,8 +83,101 @@ struct ContentView: View {
     }
 }
 
+// MARK: - Subviews
+
+struct TourGuideHeader: View {
+    var body: some View {
+        VStack(spacing: 4) {
+            Text("Tour Guide:")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .foregroundColor(.black)
+            
+            Text("The Ultimate Tour Guide")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+        }
+        .padding(.bottom)
+    }
+}
+
+struct LocationDetailsView: View {
+    let location: CLLocationCoordinate2D
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("Location Details")
+                .font(.headline)
+                .foregroundColor(.black)
+            
+            Text("Latitude: \(location.latitude)")
+            Text("Longitude: \(location.longitude)")
+        }
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white))
+        .shadow(radius: 3)
+    }
+}
+
+struct ActionButton: View {
+    let isLoading: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(isLoading ? "Loading..." : "Send Location to AI")
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(isLoading ? Color.gray : Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+        }
+        .disabled(isLoading)
+    }
+}
+
+struct ResponseListView: View {
+    let aiResponse: [String]
+    let errorMessage: String?
+    
+    var body: some View {
+        if !aiResponse.isEmpty {
+            List(aiResponse, id: \.self) { item in
+                Text(item)
+            }
+            .listStyle(PlainListStyle())
+        }
+        
+        if let error = errorMessage {
+            Text("Error: \(error)")
+                .foregroundColor(.red)
+                .font(.subheadline)
+                .padding()
+        }
+    }
+}
+
+struct LocationPermissionView: View {
+    let permissionDenied: Bool
+    
+    var body: some View {
+        if permissionDenied {
+            Text("Location Permission Denied.")
+                .foregroundColor(.red)
+                .font(.headline)
+                .padding()
+        } else {
+            Text("Requesting Location...")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .padding()
+        }
+    }
+}
+
+// MARK: - Preview
+
 #Preview {
-    // Use a mock location manager for the preview
     ContentView(locationManager: MockLocationManager())
 }
 
