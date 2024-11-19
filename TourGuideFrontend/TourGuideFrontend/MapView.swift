@@ -2,23 +2,19 @@ import SwiftUI
 import MapKit
 
 struct MapView: View {
-    @State private var region: MKCoordinateRegion
-    let location: CLLocationCoordinate2D
-    
-    init(location: CLLocationCoordinate2D) {
-        self.location = location
-        _region = State(initialValue: MKCoordinateRegion(
-            center: location,
-            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-        ))
-    }
-    
+    @Binding var region: MKCoordinateRegion
+    @Binding var markerLocation: CLLocationCoordinate2D
+
     var body: some View {
         ZStack {
-            // Full Map with Zoom Support
-            Map(coordinateRegion: $region)
-                .cornerRadius(10)
-                .shadow(radius: 5)
+            // Full Map with Zoom and Marker Support
+            Map(coordinateRegion: $region, annotationItems: [MapMarker(coordinate: markerLocation)]) { marker in
+                MapAnnotation(coordinate: marker.coordinate) {
+                    DraggablePin(markerLocation: $markerLocation)
+                }
+            }
+            .cornerRadius(10)
+            .shadow(radius: 5)
             
             // Zoom Controls
             VStack {

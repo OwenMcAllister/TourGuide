@@ -2,11 +2,12 @@ import SwiftUI
 import MapKit
 
 struct EnlargedMapView: View {
-    let location: CLLocationCoordinate2D
+    @Binding var region: MKCoordinateRegion
+    @Binding var markerLocation: CLLocationCoordinate2D
     
     var body: some View {
         ZStack {
-            MapView(location: location)
+            MapView(region: $region, markerLocation: $markerLocation)
                 .ignoresSafeArea()
             
             VStack {

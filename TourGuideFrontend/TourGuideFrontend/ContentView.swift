@@ -8,11 +8,19 @@ struct ContentView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var isMapExpanded = false // State to control map enlargement
-    
+    @State private var region: MKCoordinateRegion // Shared region state
+    @State private var markerLocation: CLLocationCoordinate2D // Shared marker location
+
     init(locationManager: LocationManager = LocationManager()) {
         _locationManager = StateObject(wrappedValue: locationManager)
+        let initialLocation = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194) // Default location
+        _region = State(initialValue: MKCoordinateRegion(
+            center: initialLocation,
+            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+        ))
+        _markerLocation = State(initialValue: initialLocation)
     }
-    
+
     var body: some View {
         ZStack {
             // Full-screen background
@@ -21,32 +29,41 @@ struct ContentView: View {
             
             // Foreground content
             VStack(spacing: 20) {
-                if let location = locationManager.userLocation {
+                if let userLocation = locationManager.userLocation {
                     TourGuideHeader()
-                    LocationDetailsView(location: location)
                     
-                    // Tap on Map to Expand
-                    MapView(location: location)
+                    // Show the updated marker location details
+                    LocationDetailsView(location: markerLocation)
+                    
+                    // Draggable Map View with Tap Gesture for Enlargement
+                    MapView(region: $region, markerLocation: $markerLocation)
+                        .frame(height: 300) // Fixed height for the map
+                        .cornerRadius(10)
+                        .shadow(radius: 5)
                         .onTapGesture {
                             isMapExpanded = true
                         }
                         .sheet(isPresented: $isMapExpanded) {
-                            EnlargedMapView(location: location)
+                            // Pass the shared state to the enlarged map view
+                            EnlargedMapView(region: $region, markerLocation: $markerLocation)
                         }
                     
+                    // Action Button to Send the Location to the Backend
                     ActionButton(isLoading: isLoading) {
-                        sendLocationToBackend(location: location)
+                        sendLocationToBackend(location: markerLocation)
                     }
                     
+                    // Display AI Response or Error Message
                     ResponseListView(aiResponse: aiResponse, errorMessage: errorMessage)
                 } else {
+                    // Handle Missing Permissions or Location Request State
                     LocationPermissionView(permissionDenied: locationManager.permissionDenied)
                 }
             }
             .padding()
         }
     }
-    
+
     func sendLocationToBackend(location: CLLocationCoordinate2D) {
         isLoading = true
         errorMessage = nil
@@ -89,6 +106,7 @@ struct ContentView: View {
         task.resume()
     }
 }
+
 
 // MARK: - Subviews
 
