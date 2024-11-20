@@ -26,7 +26,7 @@ struct DraggablePin: View {
                     dragOffset = gesture.translation
                 }
                 .onEnded { gesture in
-                    let mapWidth = UIScreen.main.bounds.width
+                    let mapWidth = UIScreen.main.bounds.width - 10.0
                     let mapHeight = 300.0 // Match the height of your MapView
                     let latitudeDelta = region.span.latitudeDelta
                     let longitudeDelta = region.span.longitudeDelta
