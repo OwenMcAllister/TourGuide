@@ -5,13 +5,20 @@ struct MapView: View {
     @Binding var region: MKCoordinateRegion
     @Binding var markerLocation: CLLocationCoordinate2D
 
+    struct LocationItem: Identifiable {
+        let id = UUID() // A unique identifier for the location
+        var coordinate: CLLocationCoordinate2D
+    }
     var body: some View {
         ZStack {
             // Full Map with Zoom and Marker Support
             Map(coordinateRegion: $region, annotationItems: [MapMarker(coordinate: markerLocation)]) { marker in
-                MapAnnotation(coordinate: marker.coordinate) {
-                    DraggablePin(markerLocation: $markerLocation)
+                Map(coordinateRegion: $region, annotationItems: [markerLocation]) { location in
+                    MapAnnotation(coordinate: location) {
+                        DraggablePin(markerLocation: $markerLocation, region: $region)
+                    }
                 }
+
             }
             .cornerRadius(10)
             .shadow(radius: 5)
