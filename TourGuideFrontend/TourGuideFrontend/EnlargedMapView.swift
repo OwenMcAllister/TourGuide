@@ -3,13 +3,13 @@ import MapKit
 
 struct EnlargedMapView: View {
     @Binding var region: MKCoordinateRegion
-    @Binding var markerLocation: CLLocationCoordinate2D
-    
+    @Binding var markerLocation: LocationItem
+
     var body: some View {
         ZStack {
             MapView(region: $region, markerLocation: $markerLocation)
                 .ignoresSafeArea()
-            
+
             VStack {
                 HStack {
                     Spacer()
@@ -20,14 +20,15 @@ struct EnlargedMapView: View {
                             .font(.headline)
                             .foregroundColor(.blue)
                             .padding()
+                            .background(Color.white.opacity(0.8))
+                            .cornerRadius(10)
                     }
                 }
                 .padding(.top, 10)
-                .background(Color.white.opacity(0.8))
                 Spacer()
             }
         }
     }
-    
+
     @Environment(\.dismiss) var dismiss
 }

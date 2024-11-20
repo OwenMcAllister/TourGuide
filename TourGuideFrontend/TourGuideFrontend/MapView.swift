@@ -1,46 +1,41 @@
 import SwiftUI
 import MapKit
 
+//struct LocationItem: Identifiable {
+//    let id = UUID()
+//    var coordinate: CLLocationCoordinate2D
+//}
+
+
 struct MapView: View {
     @Binding var region: MKCoordinateRegion
-    @Binding var markerLocation: CLLocationCoordinate2D
+    @Binding var markerLocation: LocationItem
 
-    struct LocationItem: Identifiable {
-        let id = UUID() // A unique identifier for the location
-        var coordinate: CLLocationCoordinate2D
-    }
     var body: some View {
         ZStack {
-            // Full Map with Zoom and Marker Support
-            Map(coordinateRegion: $region, annotationItems: [MapMarker(coordinate: markerLocation)]) { marker in
-                Map(coordinateRegion: $region, annotationItems: [markerLocation]) { location in
-                    MapAnnotation(coordinate: location) {
-                        DraggablePin(markerLocation: $markerLocation, region: $region)
-                    }
+            // Use annotationItems to pass the LocationItem array
+            Map(coordinateRegion: $region, annotationItems: [markerLocation]) { location in
+                MapAnnotation(coordinate: location.coordinate) {
+                    DraggablePin(markerLocation: $markerLocation.coordinate, region: $region)
                 }
-
             }
             .cornerRadius(10)
             .shadow(radius: 5)
-            
-            // Zoom Controls
+
+            // Add zoom controls
             VStack {
                 Spacer()
                 HStack {
                     Spacer()
                     VStack(spacing: 10) {
-                        Button(action: {
-                            zoomIn()
-                        }) {
+                        Button(action: zoomIn) {
                             Image(systemName: "plus.magnifyingglass")
                                 .font(.title)
                                 .padding()
                                 .background(Circle().fill(Color.white))
                                 .shadow(radius: 5)
                         }
-                        Button(action: {
-                            zoomOut()
-                        }) {
+                        Button(action: zoomOut) {
                             Image(systemName: "minus.magnifyingglass")
                                 .font(.title)
                                 .padding()
@@ -53,22 +48,14 @@ struct MapView: View {
             }
         }
     }
-    
-    // Zoom In Function
+
     private func zoomIn() {
-        let newSpan = MKCoordinateSpan(
-            latitudeDelta: max(region.span.latitudeDelta / 2, 0.002),
-            longitudeDelta: max(region.span.longitudeDelta / 2, 0.002)
-        )
-        region.span = newSpan
+        region.span.latitudeDelta /= 2
+        region.span.longitudeDelta /= 2
     }
-    
-    // Zoom Out Function
+
     private func zoomOut() {
-        let newSpan = MKCoordinateSpan(
-            latitudeDelta: min(region.span.latitudeDelta * 2, 100),
-            longitudeDelta: min(region.span.longitudeDelta * 2, 100)
-        )
-        region.span = newSpan
+        region.span.latitudeDelta *= 2
+        region.span.longitudeDelta *= 2
     }
 }
