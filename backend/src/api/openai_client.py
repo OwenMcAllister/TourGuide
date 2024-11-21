@@ -20,28 +20,21 @@ async def process_overpass_data(overpass_dump: str) -> LocationResponse:
     """
     Sends the Overpass dump to OpenAI API and processes the response into a structured output.
     """
-    response = await client.chat.completions.create(
-        model="gpt-4",
+    response = await client.beta.chat.completions.parse(
+        model="gpt-4o-mini-2024-07-18",
         messages=[
             {
                 "role": "system",
-                "content": (
-                    "You are a skilled data processor. Extract nodes from Overpass JSON data "
-                    "and structure it into a response matching the LocationResponse model. "
-                    "Select the 10 most noteworthy locations, prioritizing nodes with a name "
-                    "or significant tags. Each location should include its name (if available), "
-                    "latitude, longitude, and tags."
-                )
+                "content": "Extract the 10 most noteworth nodes from this list of data, and extract the information about them."
             },
             {
                 "role": "user",
                 "content": f"Process this Overpass data into structured output:\n\n{overpass_dump}"
             }
         ],
+        response_format=LocationResponse,
         temperature=0,
     )
-
-    return response
 
     structured_data = response.choices[0].message.content
 

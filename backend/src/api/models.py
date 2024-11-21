@@ -5,13 +5,13 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 class Location(BaseModel):
-    name: Optional[str] = Field(None, description="Name of the location")
-    lat: Optional[float] = Field(..., description="Latitude of the location")
-    lon: Optional[float] = Field(..., description="Longitude of the location")
-    tags: Optional[dict] = Field({}, description="Additional tags from OSM")
+    name: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    description: Optional[str] = None
 
 class LocationResponse(BaseModel):
-    locations: List[Location] = Field(..., description="List of location nodes")
+    locations: List[Location]
 
 class LocationQuery(BaseModel):
     lat: float
