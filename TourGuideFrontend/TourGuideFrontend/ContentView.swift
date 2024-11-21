@@ -7,10 +7,10 @@ struct ContentView: View {
     @State private var aiResponse: [Location] = [] // API response model
     @State private var isLoading = false
     @State private var errorMessage: String?
-    @State private var isMapExpanded = false // Map enlargement toggle
+    @State private var isMapExpanded = false
     @State private var region: MKCoordinateRegion
-    @State private var markerLocation: LocationItem // Represents the draggable pin's location
-    @State private var navigateToLocationsView = false // Navigation trigger
+    @State private var markerLocation: LocationItem
+    @State private var navigateToLocationsView = false
     
     init(locationManager: LocationManager = LocationManager()) {
         _locationManager = StateObject(wrappedValue: locationManager)
@@ -26,25 +26,19 @@ struct ContentView: View {
         NavigationView {
             VStack(spacing: 20) {
                 if let userLocation = locationManager.userLocation {
-                    // Header
                     TourGuideHeader()
 
-                    // Display user's location
                     LocationDetailsView(location: markerLocation.coordinate)
 
-                    // Map
                     MapView(region: $region, markerLocation: $markerLocation)
-                        .frame(height: 300) // Fixed height for the map
+                        .frame(height: 300)
                         .cornerRadius(10)
                         .shadow(radius: 5)
-                        .onTapGesture {
-                            isMapExpanded = true
-                        }
+                        .onTapGesture { isMapExpanded = true }
                         .sheet(isPresented: $isMapExpanded) {
                             EnlargedMapView(region: $region, markerLocation: $markerLocation)
                         }
 
-                    // Send Location to AI Button
                     Button(action: {
                         sendLocationToBackend(location: markerLocation.coordinate)
                     }) {
@@ -57,15 +51,10 @@ struct ContentView: View {
                     }
                     .disabled(isLoading)
 
-                    // NavigationLink to show locations
-                    NavigationLink(
-                        destination: LocationsView(),
-                        isActive: $navigateToLocationsView
-                    ) {
+                    NavigationLink(destination: LocationsView(locations: aiResponse), isActive: $navigateToLocationsView) {
                         EmptyView()
                     }
                 } else {
-                    // Show permission view if location isn't available
                     LocationPermissionView(permissionDenied: locationManager.permissionDenied)
                 }
 
@@ -77,16 +66,14 @@ struct ContentView: View {
                 }
             }
             .padding()
-//            .navigationBarTitle("Tour Guide", displayMode: .inline)
         }
     }
 
-    // Fetch data from the API
     func sendLocationToBackend(location: CLLocationCoordinate2D) {
         isLoading = true
         errorMessage = nil
 
-        guard let url = URL(string: "http://your-api-url/api/location") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/api/location") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -95,7 +82,7 @@ struct ContentView: View {
         let body: [String: Any] = [
             "lat": location.latitude,
             "lon": location.longitude,
-            "radius": 1000
+            "radius": 0.1
         ]
 
         request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: .fragmentsAllowed)
@@ -113,11 +100,10 @@ struct ContentView: View {
             }
 
             do {
-                // Decode the response into [Location]
-                let response = try JSONDecoder().decode([Location].self, from: data)
+                let response = try JSONDecoder().decode(LocationResponse.self, from: data)
                 DispatchQueue.main.async {
-                    aiResponse = response
-                    navigateToLocationsView = true // Trigger navigation
+                    aiResponse = response.locations
+                    navigateToLocationsView = true
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -129,6 +115,7 @@ struct ContentView: View {
         task.resume()
     }
 }
+
 
 
 

@@ -3,18 +3,13 @@ import MapKit
 
 struct LocationsView: View {
     // Mock data for demonstration
-    let locations: [Location] = [
-        Location(name: "Golden Gate Bridge", latitude: 37.8199, longitude: -122.4783, description: "A famous suspension bridge."),
-        Location(name: "Alcatraz Island", latitude: 37.8267, longitude: -122.4230, description: "A historic prison island."),
-        Location(name: "Coit Tower", latitude: 37.8024, longitude: -122.4058, description: "A landmark tower with stunning views.")
-    ]
+    let locations: [Location]
+        @State private var selectedLocation: Location? = nil
+        @State private var region: MKCoordinateRegion = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
+            span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+        )
     
-    // State to manage the selected location
-    @State private var selectedLocation: Location? = nil
-    @State private var region: MKCoordinateRegion = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194), // Default to San Francisco
-        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-    )
     
     var body: some View {
         NavigationView {
@@ -70,7 +65,7 @@ struct LocationsView: View {
                 List(locations) { location in
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(location.name)
+                            Text(location.name ?? "Unknown")
                                 .font(.headline)
                                 .foregroundColor(.blue)
 
@@ -81,7 +76,7 @@ struct LocationsView: View {
                             .font(.subheadline)
                             .foregroundColor(.gray)
 
-                            Text(location.description)
+                            Text(location.description ?? "Unkown")
                                 .font(.body)
                                 .foregroundColor(.black)
                         }
@@ -120,15 +115,27 @@ struct LocationsView: View {
 
 struct Location: Identifiable, Codable {
     let id = UUID() // Unique identifier for each location
-    let name: String
-    let latitude: Double
-    let longitude: Double
-    let description: String
-}
+    let name: String? // Matches Optional[str] in backend
+    let latitude: Double // Maps to `lat`
+    let longitude: Double // Maps to `lon`
+    let description: String? // Matches Optional[str] in backend
 
-// Preview
-struct LocationsView_Previews: PreviewProvider {
-    static var previews: some View {
-        LocationsView()
+    enum CodingKeys: String, CodingKey {
+        case name
+        case latitude = "lat" // Match backend key
+        case longitude = "lon" // Match backend key
+        case description
     }
 }
+
+
+struct LocationsView_Previews: PreviewProvider {
+    static var previews: some View {
+        LocationsView(locations: [
+            Location(name: "Golden Gate Bridge", latitude: 37.8199, longitude: -122.4783, description: "A famous suspension bridge."),
+            Location(name: "Alcatraz Island", latitude: 37.8267, longitude: -122.4230, description: "A historic prison island."),
+            Location(name: "Coit Tower", latitude: 37.8024, longitude: -122.4058, description: "A landmark tower with stunning views.")
+        ])
+    }
+}
+
