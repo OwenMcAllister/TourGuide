@@ -1,10 +1,3 @@
-//
-//  LocationItem.swift
-//  TourGuideFrontend
-//
-//  Created by Alex Sieni on 11/20/24.
-//
-
 import SwiftUI
 import MapKit
 

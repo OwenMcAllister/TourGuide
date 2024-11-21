@@ -22,40 +22,32 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            // Full-screen background
             Color(.systemGray6)
                 .ignoresSafeArea()
 
-            // Foreground content
             VStack(spacing: 20) {
                 if let userLocation = locationManager.userLocation {
                     TourGuideHeader()
 
-                    // Show the updated marker location details
                     LocationDetailsView(location: markerLocation.coordinate)
 
-                    // Draggable Map View with Tap Gesture for Enlargement
                     MapView(region: $region, markerLocation: $markerLocation)
-                        .frame(height: 300) // Fixed height for the map
+                        .frame(height: 300)
                         .cornerRadius(10)
                         .shadow(radius: 5)
                         .onTapGesture {
                             isMapExpanded = true
                         }
                         .sheet(isPresented: $isMapExpanded) {
-                            // Pass the shared state to the enlarged map view
                             EnlargedMapView(region: $region, markerLocation: $markerLocation)
                         }
 
-                    // Action Button to Send the Location to the Backend
                     ActionButton(isLoading: isLoading) {
                         sendLocationToBackend(location: markerLocation.coordinate)
                     }
 
-                    // Display AI Response or Error Message
                     ResponseListView(aiResponse: aiResponse, errorMessage: errorMessage)
                 } else {
-                    // Handle Missing Permissions or Location Request State
                     LocationPermissionView(permissionDenied: locationManager.permissionDenied)
                 }
             }

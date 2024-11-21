@@ -1,11 +1,6 @@
 import SwiftUI
 import MapKit
 
-//struct LocationItem: Identifiable {
-//    let id = UUID()
-//    var coordinate: CLLocationCoordinate2D
-//}
-
 
 struct MapView: View {
     @Binding var region: MKCoordinateRegion
@@ -13,7 +8,6 @@ struct MapView: View {
 
     var body: some View {
         ZStack {
-            // Use annotationItems to pass the LocationItem array
             Map(coordinateRegion: $region, annotationItems: [markerLocation]) { location in
                 MapAnnotation(coordinate: location.coordinate) {
                     DraggablePin(markerLocation: $markerLocation.coordinate, region: $region)
@@ -22,7 +16,6 @@ struct MapView: View {
             .cornerRadius(10)
             .shadow(radius: 5)
 
-            // Add zoom controls
             VStack {
                 Spacer()
                 HStack {
