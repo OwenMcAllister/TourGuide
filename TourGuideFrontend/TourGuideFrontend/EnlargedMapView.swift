@@ -7,8 +7,13 @@ struct EnlargedMapView: View {
 
     var body: some View {
         ZStack {
-            MapView(region: $region, markerLocation: $markerLocation)
-                .ignoresSafeArea()
+            // Enlarged map view
+            Map(coordinateRegion: $region, annotationItems: [markerLocation]) { location in
+                MapAnnotation(coordinate: location.coordinate) {
+                    DraggablePin(markerLocation: $markerLocation.coordinate, region: $region, scaleFactor: 3.0)
+                }
+            }
+            .ignoresSafeArea()
 
             VStack {
                 HStack {
