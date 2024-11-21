@@ -10,7 +10,7 @@ struct MapView: View {
         ZStack {
             Map(coordinateRegion: $region, annotationItems: [markerLocation]) { location in
                 MapAnnotation(coordinate: location.coordinate) {
-                    DraggablePin(markerLocation: $markerLocation.coordinate, region: $region, scaleLatFactor: 8.2, scaleLongFactor: 7.8)
+                    DraggablePin(markerLocation: $markerLocation.coordinate, region: $region, scaleLatFactor: 7, scaleLongFactor: 8.6)
                 }
             }
             .cornerRadius(10)

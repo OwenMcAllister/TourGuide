@@ -10,7 +10,7 @@ struct EnlargedMapView: View {
             // Enlarged map view
             Map(coordinateRegion: $region, annotationItems: [markerLocation]) { location in
                 MapAnnotation(coordinate: location.coordinate) {
-                    DraggablePin(markerLocation: $markerLocation.coordinate, region: $region, scaleFactor: 3.0)
+                    DraggablePin(markerLocation: $markerLocation.coordinate, region: $region, scaleLatFactor: 17, scaleLongFactor: 9)
                 }
             }
             .ignoresSafeArea()
