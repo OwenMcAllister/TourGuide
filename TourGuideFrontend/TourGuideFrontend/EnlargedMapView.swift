@@ -16,6 +16,32 @@ struct EnlargedMapView: View {
             .ignoresSafeArea()
 
             VStack {
+                // Zoom Controls
+                Spacer()
+                HStack {
+                    Spacer()
+                    VStack(spacing: 10) {
+                        Button(action: zoomIn) {
+                            Image(systemName: "plus.magnifyingglass")
+                                .font(.title)
+                                .padding()
+                                .background(Circle().fill(Color.white))
+                                .shadow(radius: 5)
+                        }
+                        Button(action: zoomOut) {
+                            Image(systemName: "minus.magnifyingglass")
+                                .font(.title)
+                                .padding()
+                                .background(Circle().fill(Color.white))
+                                .shadow(radius: 5)
+                        }
+                    }
+                    .padding()
+                }
+            }
+
+            // Close Button
+            VStack {
                 HStack {
                     Spacer()
                     Button(action: {
@@ -33,6 +59,20 @@ struct EnlargedMapView: View {
                 Spacer()
             }
         }
+        .onDisappear {
+            region.center = markerLocation.coordinate
+        }
+    }
+
+    // Zoom In/Out Functions
+    private func zoomIn() {
+        region.span.latitudeDelta /= 2
+        region.span.longitudeDelta /= 2
+    }
+
+    private func zoomOut() {
+        region.span.latitudeDelta *= 2
+        region.span.longitudeDelta *= 2
     }
 
     @Environment(\.dismiss) var dismiss

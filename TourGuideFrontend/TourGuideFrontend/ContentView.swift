@@ -9,7 +9,7 @@ struct ContentView: View {
     @State private var isMapExpanded = false
     @State private var region: MKCoordinateRegion
     @State private var markerLocation: LocationItem
-
+    
     init(locationManager: LocationManager = LocationManager()) {
         _locationManager = StateObject(wrappedValue: locationManager)
         let initialLocation = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
@@ -19,18 +19,18 @@ struct ContentView: View {
         ))
         _markerLocation = State(initialValue: LocationItem(coordinate: initialLocation))
     }
-
+    
     var body: some View {
         ZStack {
             Color(.systemGray6)
                 .ignoresSafeArea()
-
+            
             VStack(spacing: 20) {
                 if let userLocation = locationManager.userLocation {
                     TourGuideHeader()
-
+                    
                     LocationDetailsView(location: markerLocation.coordinate)
-
+                    
                     MapView(region: $region, markerLocation: $markerLocation)
                         .frame(height: 300)
                         .cornerRadius(10)
@@ -41,11 +41,11 @@ struct ContentView: View {
                         .sheet(isPresented: $isMapExpanded) {
                             EnlargedMapView(region: $region, markerLocation: $markerLocation)
                         }
-
+                    
                     ActionButton(isLoading: isLoading) {
                         sendLocationToBackend(location: markerLocation.coordinate)
                     }
-
+                    
                     ResponseListView(aiResponse: aiResponse, errorMessage: errorMessage)
                 } else {
                     LocationPermissionView(permissionDenied: locationManager.permissionDenied)
@@ -54,49 +54,57 @@ struct ContentView: View {
             .padding()
         }
     }
-
+    
     func sendLocationToBackend(location: CLLocationCoordinate2D) {
         isLoading = true
         errorMessage = nil
-
-        let url = URL(string: "APIURL")!
+        
+        guard let url = URL(string: "http://127.0.0.1:8000/api/location") else { return }
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
+        // Create the JSON body with latitude, longitude, and a fixed radius
         let body: [String: Any] = [
-            "latitude": location.latitude,
-            "longitude": location.longitude
+            "lat": location.latitude,
+            "lon": location.longitude,
+            "radius": 1000 // Example radius in meters
         ]
-
+        
+        // Encode JSON body
         request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: .fragmentsAllowed)
-
+        
+        // Make the API call
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 isLoading = false
             }
-
+            
             guard let data = data, error == nil else {
                 DispatchQueue.main.async {
-                    errorMessage = error?.localizedDescription
+                    errorMessage = error?.localizedDescription ?? "Unknown error occurred"
                 }
                 return
             }
-
-            if let responseList = try? JSONDecoder().decode([String].self, from: data) {
+            
+            // Decode the response into an array of noteworthy locations
+            do {
+                let response = try JSONDecoder().decode(LocationResponse.self, from: data)
                 DispatchQueue.main.async {
-                    aiResponse = responseList
+                    aiResponse = response.locations.map { "\($0.name) - \($0.description)" }
                 }
-            } else {
+            } catch {
                 DispatchQueue.main.async {
-                    errorMessage = "Invalid response from server."
+                    errorMessage = "Failed to decode response: \(error.localizedDescription)"
                 }
             }
         }
-
+        
         task.resume()
     }
 }
+
 
 
 // MARK: - Subviews
@@ -190,6 +198,19 @@ struct LocationPermissionView: View {
         }
     }
 }
+
+struct Location: Codable {
+    let id = UUID() // Unique identifier for each location
+    let name: String
+    let latitude: Double
+    let longitude: Double
+    let description: String
+}
+
+struct LocationResponse: Codable {
+    let locations: [Location]
+}
+
 
 // MARK: - Preview
 
