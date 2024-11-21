@@ -25,7 +25,7 @@ async def process_overpass_data(overpass_dump: str) -> LocationResponse:
         messages=[
             {
                 "role": "system",
-                "content": "Extract the 10 most noteworth nodes from this list of data, and extract the information about them."
+                "content": "Extract the 10 most noteworth nodes from this list of data, and extract the information about them. Generate a description for each location."
             },
             {
                 "role": "user",

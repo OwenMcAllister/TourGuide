@@ -11,7 +11,7 @@ from src.api.openai_client import process_overpass_data
 from fastapi import FastAPI, Depends
 
 def setup_routes(app: FastAPI):
-    @app.get("/api/location")
+    @app.post("/api/location")
     async def fetch_locations(request: LocationQuery) -> LocationResponse:
         locations: List[Locations] = await get_locations_from_overpass(request.lat, request.lon, request.radius)
         noteworthy_locations = await process_overpass_data(locations)

@@ -113,6 +113,7 @@ struct LocationsView: View {
     }
 }
 
+
 struct Location: Identifiable, Codable {
     let id = UUID() // Unique identifier for each location
     let name: String? // Matches Optional[str] in backend

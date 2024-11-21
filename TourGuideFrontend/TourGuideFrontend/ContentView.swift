@@ -73,32 +73,57 @@ struct ContentView: View {
         isLoading = true
         errorMessage = nil
 
-        guard let url = URL(string: "http://127.0.0.1:8000/api/location") else { return }
+        guard let url = URL(string: "http://127.0.0.1:8000/api/location") else {
+            errorMessage = "Invalid URL"
+            return
+        }
 
+        // Create the request
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        request.httpMethod = "POST" // Use POST to send the JSON body
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
+        // Construct the JSON body
         let body: [String: Any] = [
             "lat": location.latitude,
             "lon": location.longitude,
-            "radius": 0.1
+            "radius": 1.0 // Match the curl request radius
         ]
 
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: .fragmentsAllowed)
+        // Serialize the body to JSON
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body, options: .fragmentsAllowed)
+        } catch {
+            errorMessage = "Failed to encode request body"
+            return
+        }
 
+        // Perform the network task
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 isLoading = false
             }
 
-            guard let data = data, error == nil else {
+            if let error = error {
                 DispatchQueue.main.async {
-                    errorMessage = error?.localizedDescription ?? "Unknown error"
+                    errorMessage = error.localizedDescription
                 }
                 return
             }
 
+            guard let data = data else {
+                DispatchQueue.main.async {
+                    errorMessage = "No data received from server"
+                }
+                return
+            }
+
+            // Log the server response for debugging
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("Server Response: \(jsonString)")
+            }
+
+            // Decode the response
             do {
                 let response = try JSONDecoder().decode(LocationResponse.self, from: data)
                 DispatchQueue.main.async {
@@ -114,6 +139,8 @@ struct ContentView: View {
 
         task.resume()
     }
+
+
 }
 
 
