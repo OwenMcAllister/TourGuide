@@ -1,9 +1,17 @@
-import openai
-from models import Location
+# builtin
 from typing import List
 
-# OpenAI API key
-openai.api_key = 'your-openai-api-key'
+# internal
+from models import Location
+from src.globals.environment import Environment
+
+# external
+from openai import AsyncOpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+environment = Environment()
+client = AsyncOpenAI(api_key=environment.OPENAI_API_KEY)
 
 def prepare_openai_prompt(locations: List[Location]) -> str:
     prompt = "Here is a list of locations with details. Return the most noteworthy locations in this format:\n"

@@ -1,11 +1,33 @@
+# builtin
 import requests
-from models import Location
 from typing import List
+
+# internal
+from models import Location
+
+# external
 from pydantic import ValidationError
 
-def get_locations_from_overpass(query: str) -> List[Location]:
+def get_locations_from_overpass(lat: float, long: float) -> List[Location]:
+
     url = 'http://overpass-api.de/api/interpreter'
-    params = {'data': query}
+
+    overpass_query =f"""
+    [out:json];
+    (
+      node["tourism"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["artwork"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["atraction"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["garden"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["historic"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["landmark"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["memorial"](around:{radius_miles * 1609.34},{lat},{lon});
+      node["natural"](around:{radius_miles * 1609.34},{lat},{lon})["natural"!~"tree"];
+    );
+    out body;
+    """
+
+    params = {'data': overpass_query}
 
     response = requests.get(url, params=params)
     if response.status_code != 200:
@@ -14,7 +36,6 @@ def get_locations_from_overpass(query: str) -> List[Location]:
     data = response.json()
     elements = data.get("elements", [])
 
-    # Parse the elements into Location models
     locations = []
     for element in elements:
         if element["type"] == "node":
