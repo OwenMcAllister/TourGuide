@@ -2,7 +2,6 @@
 from typing import Tuple
 
 # external
-import geopy
 from geopy.distance import distance
 
 async def get_bounding_box(latitude: float, longitude: float, radius_miles: float) -> Tuple[float, float, float, float]:

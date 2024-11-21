@@ -2,7 +2,7 @@
 from typing import List
 
 # internal
-from models import Location
+from src.api.models import Location
 from src.globals.environment import Environment
 
 # external

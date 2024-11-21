@@ -3,7 +3,7 @@ import aiohttp
 from typing import List
 
 # internal
-from models import Location
+from src.api.models import Location
 
 # external
 from pydantic import ValidationError
