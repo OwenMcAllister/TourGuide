@@ -27,8 +27,8 @@ def prepare_openai_prompt(locations: List[Location]) -> str:
 
     return prompt
 
-def get_noteworthy_locations_from_llm(prompt: str) -> str:
-    response = openai.Completion.create(
+async def get_noteworthy_locations_from_llm(prompt: str) -> str:
+    response = await client.Completion.acreate(
         model="text-davinci-003",
         prompt=prompt,
         max_tokens=150,
