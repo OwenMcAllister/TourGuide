@@ -1,14 +1,16 @@
 import SwiftUI
+import CoreLocation
 import MapKit
 
 struct ContentView: View {
     @StateObject private var locationManager: LocationManager
-    @State private var aiResponse: [String] = []
+    @State private var aiResponse: [Location] = [] // API response model
     @State private var isLoading = false
     @State private var errorMessage: String?
-    @State private var isMapExpanded = false
+    @State private var isMapExpanded = false // Map enlargement toggle
     @State private var region: MKCoordinateRegion
-    @State private var markerLocation: LocationItem
+    @State private var markerLocation: LocationItem // Represents the draggable pin's location
+    @State private var navigateToLocationsView = false // Navigation trigger
     
     init(locationManager: LocationManager = LocationManager()) {
         _locationManager = StateObject(wrappedValue: locationManager)
@@ -19,20 +21,20 @@ struct ContentView: View {
         ))
         _markerLocation = State(initialValue: LocationItem(coordinate: initialLocation))
     }
-    
+
     var body: some View {
-        ZStack {
-            Color(.systemGray6)
-                .ignoresSafeArea()
-            
+        NavigationView {
             VStack(spacing: 20) {
                 if let userLocation = locationManager.userLocation {
+                    // Header
                     TourGuideHeader()
-                    
+
+                    // Display user's location
                     LocationDetailsView(location: markerLocation.coordinate)
-                    
+
+                    // Map
                     MapView(region: $region, markerLocation: $markerLocation)
-                        .frame(height: 300)
+                        .frame(height: 300) // Fixed height for the map
                         .cornerRadius(10)
                         .shadow(radius: 5)
                         .onTapGesture {
@@ -41,58 +43,81 @@ struct ContentView: View {
                         .sheet(isPresented: $isMapExpanded) {
                             EnlargedMapView(region: $region, markerLocation: $markerLocation)
                         }
-                    
-                    ActionButton(isLoading: isLoading) {
+
+                    // Send Location to AI Button
+                    Button(action: {
                         sendLocationToBackend(location: markerLocation.coordinate)
+                    }) {
+                        Text(isLoading ? "Loading..." : "Send Location to AI")
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(isLoading ? Color.gray : Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
                     }
-                    
-                    ResponseListView(aiResponse: aiResponse, errorMessage: errorMessage)
+                    .disabled(isLoading)
+
+                    // NavigationLink to show locations
+                    NavigationLink(
+                        destination: LocationsView(),
+                        isActive: $navigateToLocationsView
+                    ) {
+                        EmptyView()
+                    }
                 } else {
+                    // Show permission view if location isn't available
                     LocationPermissionView(permissionDenied: locationManager.permissionDenied)
+                }
+
+                if let error = errorMessage {
+                    Text("Error: \(error)")
+                        .foregroundColor(.red)
+                        .font(.subheadline)
+                        .padding()
                 }
             }
             .padding()
+//            .navigationBarTitle("Tour Guide", displayMode: .inline)
         }
     }
-    
+
+    // Fetch data from the API
     func sendLocationToBackend(location: CLLocationCoordinate2D) {
         isLoading = true
         errorMessage = nil
-        
-        guard let url = URL(string: "http://127.0.0.1:8000/api/location") else { return }
-        
+
+        guard let url = URL(string: "http://your-api-url/api/location") else { return }
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Create the JSON body with latitude, longitude, and a fixed radius
+
         let body: [String: Any] = [
             "lat": location.latitude,
             "lon": location.longitude,
-            "radius": 1000 // Example radius in meters
+            "radius": 1000
         ]
-        
-        // Encode JSON body
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: .fragmentsAllowed)
-        
-        // Make the API call
+
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 isLoading = false
             }
-            
+
             guard let data = data, error == nil else {
                 DispatchQueue.main.async {
-                    errorMessage = error?.localizedDescription ?? "Unknown error occurred"
+                    errorMessage = error?.localizedDescription ?? "Unknown error"
                 }
                 return
             }
-            
-            // Decode the response into an array of noteworthy locations
+
             do {
-                let response = try JSONDecoder().decode(LocationResponse.self, from: data)
+                // Decode the response into [Location]
+                let response = try JSONDecoder().decode([Location].self, from: data)
                 DispatchQueue.main.async {
-                    aiResponse = response.locations.map { "\($0.name) - \($0.description)" }
+                    aiResponse = response
+                    navigateToLocationsView = true // Trigger navigation
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -100,10 +125,11 @@ struct ContentView: View {
                 }
             }
         }
-        
+
         task.resume()
     }
 }
+
 
 
 
@@ -197,14 +223,6 @@ struct LocationPermissionView: View {
                 .padding()
         }
     }
-}
-
-struct Location: Codable {
-    let id = UUID() // Unique identifier for each location
-    let name: String
-    let latitude: Double
-    let longitude: Double
-    let description: String
 }
 
 struct LocationResponse: Codable {
